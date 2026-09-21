@@ -6,13 +6,13 @@ services:
     restart: unless-stopped
 
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT}:5432"
 
     # Works with no .env. On the server, set a real password in .env.
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --data-checksums"
       TZ: Africa/Nairobi
       PGTZ: Africa/Nairobi
