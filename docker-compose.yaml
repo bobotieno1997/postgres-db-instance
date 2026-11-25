@@ -8,7 +8,8 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
 
-    # Works with no .env. On the server, set a real password in .env.
+    # Set real passwords in .env.
+    env_file: .env   # passes user passwords through to user.sql
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -19,6 +20,22 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./user.sql:/sql/user.sql:ro
+
+    # Start postgres as usual, and run user.sql once it accepts connections.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        (
+          until pg_isready -q -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"; do sleep 2; done
+          export TABLE_OWNER="$${TABLE_OWNER:-$$POSTGRES_USER}"
+          PGPASSWORD="$$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 --single-transaction \
+            -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -f /sql/user.sql \
+            && echo "user.sql applied" || echo "user.sql FAILED"
+        ) &
+        exec docker-entrypoint.sh "$$@"
+      - --
 
     command:
       - postgres
