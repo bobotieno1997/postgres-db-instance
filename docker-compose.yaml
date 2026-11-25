@@ -30,8 +30,9 @@ services:
         (
           until pg_isready -q -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"; do sleep 2; done
           export TABLE_OWNER="$${TABLE_OWNER:-$$POSTGRES_USER}"
-          PGPASSWORD="$$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 --single-transaction \
-            -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -f /sql/user.sql \
+          # No -h: uses the local socket, so no admin password is needed
+          psql -v ON_ERROR_STOP=1 \
+            -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -f /sql/user.sql \
             && echo "user.sql applied" || echo "user.sql FAILED"
         ) &
         exec docker-entrypoint.sh "$$@"
