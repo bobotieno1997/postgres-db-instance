@@ -21,6 +21,11 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bob')
 -- 2. DATABASE: key_accounts_prod
 --    Read-only on schema analytics: lawrence, bob
 -- ===============================================================
+-- Create the database if missing (must stay outside BEGIN/COMMIT)
+SELECT 'CREATE DATABASE key_accounts_prod'
+WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'key_accounts_prod')
+\gexec
+
 \connect key_accounts_prod
 BEGIN;
 
